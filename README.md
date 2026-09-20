@@ -14,17 +14,17 @@
 [![Synapses](https://img.shields.io/badge/Synapses-25.5M%20Connections-purple.svg?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
-[**Explore Architecture**](#-architecture) •
-[**Quickstart**](#-quickstart) •
-[**Connectome Engine**](#-biological-foundation) •
-[**Swarm Consensus**](#-swarm-consensus-mechanism) •
-[**3D Lab Arena**](#-real-time-3d-arena--connectome-visualizer)
+[**Explore Architecture**](#architecture) •
+[**Quickstart**](#quickstart) •
+[**Connectome Engine**](#biological-foundation) •
+[**Swarm Consensus**](#swarm-consensus-mechanism) •
+[**3D Lab Arena**](#real-time-3d-arena--connectome-visualizer)
 
 </div>
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 On September 3, 2026, HHMI Janelia and Google Research released **MaleCNS v1.0** — the first complete, electron-microscopy-reconstructed connectome of an adult male fruit fly's entire central nervous system: **166,700 neurons** and **25,582,938 synaptic connections**.
 
@@ -34,7 +34,7 @@ A single biological fly brain processing noisy visual stimuli is prone to errors
 
 ---
 
-## 🔬 Biological Foundation
+## Biological Foundation
 
 Unlike conventional artificial neural networks (CNNs or ViTs), FlySwarm runs on biological hardware topology:
 
@@ -45,62 +45,48 @@ Unlike conventional artificial neural networks (CNNs or ViTs), FlySwarm runs on 
 
 ---
 
-## 📐 Architecture
+## Architecture
 
-```
-                                  Target Challenge
-                         (Rotate, Math, Text, Scatter, etc.)
-                                          │
-                                          ▼
-                         ┌─────────────────────────────────┐
-                         │   Independent Distortion Gen    │
-                         │    (N Variants per Ground Truth)│
-                         └────────────────┬────────────────┘
-                                          │
-                     ┌────────────────────┼────────────────────┐
-                     ▼                    ▼                    ▼
-                 Variant 1            Variant 2            Variant N
-                     │                    │                    │
-                     ▼                    ▼                    ▼
-             ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-             │  Photoreceptor│    │  Photoreceptor│    │  Photoreceptor│
-             │   Encoding   │     │   Encoding   │     │   Encoding   │
-             │ (Luminance   │     │ (Luminance   │     │ (Luminance   │
-             │  + Features) │     │  + Features) │     │  + Features) │
-             └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-                    │                    │                    │
-                    ▼                    ▼                    ▼
-             ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-             │ MaleCNS v1.0 │     │ MaleCNS v1.0 │     │ MaleCNS v1.0 │
-             │ Connectome   │     │ Connectome   │     │ Connectome   │
-             │ (166k Neurons│     │ (166k Neurons│     │ (166k Neurons│
-             │  25.5M Syn)  │     │  25.5M Syn)  │     │  25.5M Syn)  │
-             └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-                    │                    │                    │
-                    ▼                    ▼                    ▼
-             ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-             │ Readout Head │     │ Readout Head │     │ Readout Head │
-             │ (Ridge/Logit)│     │ (Ridge/Logit)│     │ (Ridge/Logit)│
-             └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-                    │                    │                    │
-                    ▼                    ▼                    ▼
-               Vote + Conf          Vote + Conf          Vote + Conf
-                    │                    │                    │
-                    └────────────────────┼────────────────────┘
-                                         │
-                                         ▼
-                         ┌─────────────────────────────────┐
-                         │    Swarm Consensus Aggregator   │
-                         │   (Weighted Voting & Decision)  │
-                         └───────────────┬─────────────────┘
-                                         │
-                                         ▼
-                                   Final Solution
+```mermaid
+flowchart TD
+    Challenge["Target Challenge<br/>(Rotate, Math, Text, Scatter, Broken Circle)"] --> DistortGen["Independent Distortion Generator<br/>(N Variants per Ground Truth)"]
+
+    DistortGen --> V1["Variant 1"]
+    DistortGen --> V2["Variant 2"]
+    DistortGen --> VN["Variant N"]
+
+    subgraph SwarmPipeline ["Ensemble Connectome Processing"]
+        direction TB
+        subgraph Agent1 ["Fly 1"]
+            V1 --> E1["Photoreceptor & Visual Encoding<br/>(LC10a, LC4, LPLC1 Projection)"]
+            E1 --> C1["MaleCNS v1.0 Connectome<br/>(166,700 Neurons, 25.5M Synapses)"]
+            C1 --> R1["Reservoir Readout Head<br/>(Ridge / Logistic Decoder)"]
+        end
+
+        subgraph Agent2 ["Fly 2"]
+            V2 --> E2["Photoreceptor & Visual Encoding<br/>(LC10a, LC4, LPLC1 Projection)"]
+            E2 --> C2["MaleCNS v1.0 Connectome<br/>(166,700 Neurons, 25.5M Synapses)"]
+            C2 --> R2["Reservoir Readout Head<br/>(Ridge / Logistic Decoder)"]
+        end
+
+        subgraph AgentN ["Fly N"]
+            VN --> EN["Photoreceptor & Visual Encoding<br/>(LC10a, LC4, LPLC1 Projection)"]
+            EN --> CN["MaleCNS v1.0 Connectome<br/>(166,700 Neurons, 25.5M Synapses)"]
+            CN --> RN["Reservoir Readout Head<br/>(Ridge / Logistic Decoder)"]
+        end
+    end
+
+    R1 --> Votes["Votes & Confidence Scores"]
+    R2 --> Votes
+    RN --> Votes
+
+    Votes --> Aggregator["Swarm Consensus Aggregator<br/>(Confidence-Weighted Decision)"]
+    Aggregator --> Output["Final Verified Solution"]
 ```
 
 ---
 
-## 🧠 Swarm Consensus Mechanism
+## Swarm Consensus Mechanism
 
 Why five flies instead of one?
 
@@ -112,7 +98,7 @@ Why five flies instead of one?
 
 ---
 
-## 🎯 Supported CAPTCHA Categories
+## Supported CAPTCHA Categories
 
 | Category | Description | Biological Input Mapping | Readout Head |
 | :--- | :--- | :--- | :--- |
@@ -124,7 +110,7 @@ Why five flies instead of one?
 
 ---
 
-## 🎮 Real-Time 3D Arena & Connectome Visualizer
+## Real-Time 3D Arena & Connectome Visualizer
 
 The frontend provides an interactive WebGL simulation environment built with **Next.js 14**, **Three.js**, and **React Three Fiber**:
 
@@ -136,7 +122,7 @@ The frontend provides an interactive WebGL simulation environment built with **N
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
 
@@ -195,7 +181,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🏋️ Training the Connectome Readouts
+## Training the Connectome Readouts
 
 To train readout weights for a specific CAPTCHA type directly on connectome spike dynamics:
 
@@ -211,7 +197,7 @@ Trained models are serialized to `models/<type>_<difficulty>.pkl`.
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 fly-swarm/
@@ -237,7 +223,7 @@ fly-swarm/
 
 ---
 
-## 📚 Acknowledgments & References
+## Acknowledgments & References
 
 * **HHMI Janelia Research Campus & Google FlyEM**: Connectome reconstruction and open release of [MaleCNS v1.0](https://male-cns.janelia.org/).
 * **FlyBrain Simulation Engine**: Spiking reservoir integration tools for connectomics.
